@@ -14,25 +14,25 @@ export default async function AuditPage({
 
   if (targetUser) {
     try {
-      // Added headers to bypass the "Network Connection Failed" block
-      const res = await fetch(`https://api.scrapecreators.com/v1/instagram/info?username=${targetUser}`, {
+      // Using the specialized 'user/full' endpoint with 'handle'
+      const apiUrl = `https://api.scrapecreators.com/v2/instagram/user/full?handle=${targetUser}`;
+      
+      const res = await fetch(apiUrl, {
         method: 'GET',
         headers: { 
           'x-api-key': API_KEY,
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          'Content-Type': 'application/json'
         },
         cache: 'no-store' 
       });
 
       if (!res.ok) {
-        errorDetail = `API Error ${res.status}`;
+        errorDetail = `404: Endpoint not found. Tried: ${apiUrl}`;
       } else {
         data = await res.json();
       }
     } catch (e) {
-      // This catch was hitting because of the missing User-Agent
-      errorDetail = "Scraper service blocked the request. Try again in 60 seconds.";
+      errorDetail = "Connection failed. Scraper is offline.";
     }
   }
 
@@ -46,12 +46,14 @@ export default async function AuditPage({
       </nav>
 
       <main className="max-w-5xl mx-auto pt-20 px-6 relative z-10">
-        <div className="text-center mb-16 font-black uppercase tracking-tighter text-7xl">
-          Intelligence <br/><span className="text-green-500">Unfiltered.</span>
+        <div className="text-center mb-16">
+          <h1 className="text-7xl font-black uppercase tracking-tighter leading-none">
+            Intelligence <br/><span className="text-green-500">Unfiltered.</span>
+          </h1>
         </div>
 
         <form action="/" method="GET" className="max-w-2xl mx-auto mb-20">
-          <div className="flex bg-zinc-900 border border-zinc-800 rounded-2xl p-2 focus-within:border-green-500/50">
+          <div className="flex bg-zinc-900 border border-zinc-800 rounded-2xl p-2 focus-within:border-green-500/50 transition-all shadow-2xl">
             <input 
               name="username"
               required
@@ -59,21 +61,21 @@ export default async function AuditPage({
               placeholder="enter handle..."
               className="w-full bg-transparent py-4 px-6 focus:outline-none text-white text-lg"
             />
-            <button type="submit" className="bg-white text-black font-bold px-10 rounded-xl">
+            <button type="submit" className="bg-white text-black font-bold px-10 rounded-xl hover:bg-zinc-200 transition-all active:scale-95">
               Analyze
             </button>
           </div>
         </form>
 
         {targetUser && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-zinc-900/40 border border-zinc-800 p-8 rounded-[32px]">
-              <div className="flex items-center gap-2 mb-6 text-zinc-500 font-bold uppercase text-[10px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-700">
+            <div className="md:col-span-2 bg-zinc-900/40 border border-zinc-800 p-8 rounded-[32px] backdrop-blur-md">
+              <div className="flex items-center gap-2 mb-6 text-zinc-500">
                 <BarChart3 className="w-4 h-4" />
-                Live Audit Feed // {targetUser}
+                <span className="text-[10px] font-bold uppercase tracking-widest italic">System Log // {targetUser}</span>
               </div>
               <pre className="text-[11px] font-mono text-green-400 overflow-auto max-h-[400px]">
-                {errorDetail ? `// STATUS: ${errorDetail}` : JSON.stringify(data, null, 2)}
+                {errorDetail ? `// ERROR: ${errorDetail}\n// ACTION: Contact ScrapeCreators support to verify API endpoint.` : JSON.stringify(data, null, 2)}
               </pre>
             </div>
             
@@ -81,12 +83,14 @@ export default async function AuditPage({
               <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-[32px]">
                 <Zap className="text-green-500 w-5 h-5 mb-4" />
                 <h4 className="text-zinc-500 text-[10px] font-bold uppercase mb-1">Audit Score</h4>
-                <p className="text-5xl font-black italic">{data?.audit_score || "---"}</p>
+                <p className="text-5xl font-black italic tracking-tighter">
+                  {data?.audit_score || data?.score || "---"}
+                </p>
               </div>
               <div className="bg-green-500 p-8 rounded-[32px] text-black">
                 <Users className="w-5 h-5 mb-4 opacity-60" />
-                <h4 className="text-black/50 text-[10px] font-bold uppercase mb-1">Authenticity</h4>
-                <p className="text-3xl font-black italic uppercase">Verified</p>
+                <h4 className="text-black/50 text-[10px] font-bold uppercase mb-1">Status</h4>
+                <p className="text-3xl font-black italic uppercase tracking-tighter">Verified</p>
               </div>
             </div>
           </div>
