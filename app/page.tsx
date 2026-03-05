@@ -1,5 +1,4 @@
-import { Search, ShieldCheck, BarChart3, Users, Zap, activity, Heart, MessageCircle } from "lucide-react";
-
+import { Search, ShieldCheck, BarChart3, Users, Zap, Activity, Heart, MessageCircle } from "lucide-react";
 export default async function AuditPage({
   searchParams,
 }: {
