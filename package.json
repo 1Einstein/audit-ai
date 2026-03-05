@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.2.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "next": "15.5.10",
+    "react": "^19.0.4",
+    "react-dom": "^10.0.4"
   },
   "devDependencies": {
     "typescript": "^5",
