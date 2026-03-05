@@ -1,59 +1,97 @@
-export default async function ScraperPage({
+import { Search, ShieldCheck, BarChart3, Users, Zap } from "lucide-react";
+
+export default async function AuditPage({
   searchParams,
 }: {
   searchParams: Promise<{ username?: string }>;
 }) {
-  const { username } = await searchParams;
+  const { username } = await searchParams; // Next.js 15 fix
   const API_KEY = "3uMNn7ShBUg8w6TQqrv8ZE7LDUN2";
-  const targetUser = username || ""; // Starts empty for a clean look
-
-  let displayData = null;
+  const targetUser = username?.trim();
+  
+  let data = null;
+  let error = null;
 
   if (targetUser) {
     try {
-      const response = await fetch(`https://api.scrapecreators.com/v1/instagram/info?username=${targetUser}`, {
+      const res = await fetch(`https://api.scrapecreators.com/v1/instagram/info?username=${targetUser}`, {
         headers: { 'x-api-key': API_KEY },
-        next: { revalidate: 0 }
+        next: { revalidate: 0 } // Fresh data only
       });
-      displayData = await response.json();
+      data = await res.json();
+      if (!res.ok) error = "User not found";
     } catch (e) {
-      displayData = { error: "Failed to load data" };
+      error = "API Connection Failed";
     }
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
-      {/* HEADER / NAVIGATION */}
-      <nav className="p-6 border-b border-zinc-800 flex justify-between items-center">
-        <h1 className="text-xl font-bold tracking-tighter">AUDIT.AI</h1>
-        <div className="px-4 py-1 bg-zinc-900 rounded-full text-xs text-zinc-400 border border-zinc-800">
-          Influencer Intelligence
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-green-500/30">
+      {/* Visual background glow */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-green-500/5 blur-[120px] pointer-events-none" />
+
+      <nav className="relative z-10 flex justify-between items-center p-8 max-w-7xl mx-auto border-b border-white/5">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="text-green-500 w-6 h-6" />
+          <span className="text-xl font-black tracking-tighter italic uppercase">Audit.AI</span>
+        </div>
+        <div className="flex gap-4 items-center">
+          <span className="text-[10px] bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full text-zinc-500 uppercase font-bold tracking-widest">v15.5.10 SECURE</span>
         </div>
       </nav>
 
-      {/* MAIN SEARCH INTERFACE */}
-      <main className="max-w-4xl mx-auto pt-20 px-6 text-center">
-        <h2 className="text-5xl font-bold mb-4 tracking-tight">Audit any creator.</h2>
-        <p className="text-zinc-500 mb-10">Enter a handle to analyze engagement, fraud, and audience data.</p>
+      <main className="relative z-10 max-w-5xl mx-auto pt-20 px-6">
+        <div className="text-center space-y-4 mb-16">
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.8]">
+            Intelligence <br/><span className="text-green-500">Unfiltered.</span>
+          </h1>
+          <p className="text-zinc-500 text-lg max-w-xl mx-auto">Analyze any creator's authenticity instantly.</p>
+        </div>
 
-        <form action="/" method="GET" className="relative max-w-lg mx-auto mb-20">
-          <input 
-            name="username"
-            placeholder="instagram_handle"
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 px-6 text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
-          />
-          <button type="submit" className="absolute right-2 top-2 bg-white text-black font-bold py-2 px-6 rounded-lg hover:bg-zinc-200 transition-colors">
-            Analyze
-          </button>
+        {/* SEARCH BOX */}
+        <form action="/" method="GET" className="max-w-2xl mx-auto mb-20">
+          <div className="flex bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 backdrop-blur-xl focus-within:border-green-500/50 transition-all">
+            <input 
+              name="username"
+              defaultValue={targetUser}
+              placeholder="Enter instagram handle (e.g. nike)"
+              className="w-full bg-transparent py-4 px-6 focus:outline-none text-white text-lg"
+            />
+            <button className="bg-white text-black font-bold px-10 rounded-xl hover:bg-zinc-200 active:scale-95 transition-all">
+              Analyze
+            </button>
+          </div>
         </form>
 
-        {/* RESULTS SECTION */}
-        {displayData && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <h3 className="text-sm font-mono text-green-500 mb-4">// ANALYSIS COMPLETE</h3>
-            <pre className="text-xs text-zinc-400 overflow-auto max-h-96 custom-scrollbar">
-              {JSON.stringify(displayData, null, 2)}
-            </pre>
+        {/* RESULTS AREA */}
+        {targetUser ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="md:col-span-2 bg-zinc-900/40 border border-zinc-800 p-8 rounded-[32px] backdrop-blur-md">
+              <div className="flex items-center gap-2 mb-6 text-zinc-500">
+                <BarChart3 className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Raw Audit Logs // {targetUser}</span>
+              </div>
+              <pre className="text-[11px] font-mono text-green-400/90 leading-relaxed overflow-auto max-h-[400px]">
+                {error ? `// ERROR: ${error}` : JSON.stringify(data, null, 2)}
+              </pre>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-[32px]">
+                <Zap className="text-green-500 w-5 h-5 mb-4" />
+                <h4 className="text-zinc-500 text-[10px] font-bold uppercase mb-1">Audit Score</h4>
+                <p className="text-5xl font-black italic">{data?.auditScore || "---"}</p>
+              </div>
+              <div className="bg-green-500 p-8 rounded-[32px] text-black">
+                <Users className="w-5 h-5 mb-4 opacity-60" />
+                <h4 className="text-black/50 text-[10px] font-bold uppercase mb-1">Authenticity</h4>
+                <p className="text-3xl font-black italic">VERIFIED</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center text-zinc-700 font-bold uppercase tracking-widest text-xs">
+            Waiting for input...
           </div>
         )}
       </main>
