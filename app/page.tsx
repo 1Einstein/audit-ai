@@ -1,27 +1,32 @@
 export default async function ScraperPage() {
   const API_KEY = "3uMNn7ShBUg8w6TQqrv8ZE7LDUN2";
-  
-  // This fetches data for the 'nike' instagram handle as a test
-  const response = await fetch("https://api.scrapecreators.com/v2/instagram/user/info?handle=nike", {
-    method: 'GET',
-    headers: {
-      'x-api-key': API_KEY,
-      'Content-Type': 'application/json'
-    },
-    cache: 'no-store' 
-  });
+  let displayData;
 
-  const data = await response.json();
+  try {
+    const response = await fetch("https://api.scrapecreators.com/v2/instagram/user/info?handle=nike", {
+      method: 'GET',
+      headers: {
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
+      },
+      next: { revalidate: 0 } // Standard Next.js 15 way to keep data fresh
+    });
+
+    if (!response.ok) {
+      displayData = { error: `API responded with status: ${response.status}` };
+    } else {
+      displayData = await response.json();
+    }
+  } catch (err) {
+    displayData = { error: "Failed to connect to the scraper API" };
+  }
 
   return (
-    <main style={{ padding: '40px', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Audit Results</h1>
-      <div style={{ marginTop: '20px', backgroundColor: '#f4f4f4', padding: '20px', borderRadius: '8px' }}>
-        <p><strong>Status:</strong> {response.status === 200 ? "✅ Connected" : "❌ Error"}</p>
-        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-          {JSON.stringify(data, null, 2)}
-        </pre>
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>Audit.AI Debug Mode</h1>
+      <div style={{ background: '#eee', padding: '15px', borderRadius: '5px' }}>
+        <pre>{JSON.stringify(displayData, null, 2)}</pre>
       </div>
-    </main>
+    </div>
   );
 }
