@@ -5,7 +5,7 @@ export default async function AuditPage({
 }: {
   searchParams: Promise<{ username?: string }>;
 }) {
-  const { username } = await searchParams; // Next.js 15 requirement
+  const { username } = await searchParams;
   const API_KEY = "3uMNn7ShBUg8w6TQqrv8ZE7LDUN2";
   const targetUser = username?.trim();
   
@@ -14,28 +14,30 @@ export default async function AuditPage({
 
   if (targetUser) {
     try {
-      // Switched to the standard 'profile' endpoint to resolve the 404
-      const res = await fetch(`https://api.scrapecreators.com/v1/instagram/profile?username=${targetUser}`, {
+      // Standardizing to the v2 info endpoint which is most stable
+      const res = await fetch(`https://api.scrapecreators.com/v2/instagram/info?handle=${targetUser}`, {
         method: 'GET',
-        headers: { 
-          'x-api-key': API_KEY,
-          'Content-Type': 'application/json'
-        },
-        cache: 'no-store' // Critical: Forces a fresh API call on every click
+        headers: { 'x-api-key': API_KEY },
+        cache: 'no-store'
       });
 
+      const result = await res.json();
+
       if (!res.ok) {
-        errorDetail = `Status ${res.status}: The API could not find this handle or the endpoint is restricted.`;
+        errorDetail = `Status ${res.status}: ${result.message || "Invalid Request"}`;
       } else {
-        data = await res.json();
+        data = result;
       }
     } catch (e) {
-      errorDetail = "Network connection failed. Check your internet or API status.";
+      errorDetail = "Network connection failed.";
     }
   }
 
+  // Helping the UI find the right numbers in the API mess
+  const displayScore = data?.audit_score || data?.score || data?.data?.score || "---";
+
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans">
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-green-500/30">
       <nav className="p-8 border-b border-white/5 relative z-10">
         <div className="flex items-center gap-2">
           <ShieldCheck className="text-green-500 w-6 h-6" />
@@ -50,12 +52,12 @@ export default async function AuditPage({
           </h1>
         </div>
 
-        {/* This form triggers the URL update that Next.js 15 uses to fetch data */}
         <form action="/" method="GET" className="max-w-2xl mx-auto mb-20">
           <div className="flex bg-zinc-900 border border-zinc-800 rounded-2xl p-2 focus-within:border-green-500/50 transition-all shadow-2xl">
             <input 
               name="username"
               required
+              defaultValue={targetUser}
               placeholder="enter handle..."
               className="w-full bg-transparent py-4 px-6 focus:outline-none text-white text-lg"
             />
@@ -81,9 +83,9 @@ export default async function AuditPage({
               <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-[32px]">
                 <Zap className="text-green-500 w-5 h-5 mb-4" />
                 <h4 className="text-zinc-500 text-[10px] font-bold uppercase mb-1">Audit Score</h4>
-                <p className="text-5xl font-black italic tracking-tighter">{data?.audit_score || data?.score || "---"}</p>
+                <p className="text-5xl font-black italic tracking-tighter">{displayScore}</p>
               </div>
-              <div className="bg-green-500 p-8 rounded-[32px] text-black">
+              <div className="bg-green-500 p-8 rounded-[32px] text-black shadow-lg">
                 <Users className="w-5 h-5 mb-4 opacity-60" />
                 <h4 className="text-black/50 text-[10px] font-bold uppercase mb-1">Authenticity</h4>
                 <p className="text-3xl font-black italic uppercase tracking-tighter">Verified</p>
